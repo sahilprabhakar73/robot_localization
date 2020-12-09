@@ -1,11 +1,19 @@
 <launch>
   <node pkg="robot_localization" type="ekf_localization_node" name="ekf_se" clear_params="true">
-    <rosparam command="load" file="$(find robot_localization)/params/ekf_template.yaml" />
-
-    <!--  Placeholder for output topic remapping
-    <remap from="odometry/filtered" to=""/>
-    <remap from="accel/filtered" to=""/>
-    -->
-
+    <rosparam command="load" file="$(find robot_localization)/params/ekf_test_param.yaml" />
   </node>
+
+  <node pkg="tf" type="static_transform_publisher" name="base_gps" args="0 0 0 0 0 0 /base_link /gps 100"/>
+  <node pkg="robot_localization" type="navsat_transform_node" name="navsat_transform_node" respawn="true" output="screen">
+    <rosparam command="load" file="$(find robot_localization)/params/navsat_test_param.yaml" />
+    <remap from="/imu/data" to="/gps/navheading" />
+    <remap from="/gps/fix" to="/gps/fix" />
+    
+    <!-- <rosparam param="datum">[13.1104406, 77.3715618, 0.0]</rosparam> -->
+    <!-- <rosparam param="datum">[13.1104568, 77.3715598, 0.0]</rosparam> -->
+    <!-- <rosparam param="datum">[13.1104507, 77.3715633, 0.0]</rosparam> -->
+    <!-- <rosparam param="datum">[13.059552, 77.552503, 0.00]</rosparam> -->
+  </node>
+
+
 </launch>

@@ -286,6 +286,12 @@ template<class T> class RosFilter
     //!
     bool validateFilterOutput(const nav_msgs::Odometry &message);
 
+
+    void output_matrices(FilterBase &f_);
+    void dump_to_json();
+
+    
+
   protected:
     //! @brief Finds the latest filter state before the given timestamp and makes it the current state again.
     //!
@@ -719,6 +725,13 @@ template<class T> class RosFilter
     //! @brief optional signaling diagnostic frequency
     //!
     std::unique_ptr<diagnostic_updater::HeaderlessTopicDiagnostic> freqDiag_;
+
+    std::string iter_prefix;
+    std::string state_prefix;
+    long long int m_count;
+
+    json j_out;
+    std::ofstream json_write;
 };
 
 }  // namespace RobotLocalization

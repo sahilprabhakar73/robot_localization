@@ -33,6 +33,9 @@
 #ifndef ROBOT_LOCALIZATION_FILTER_COMMON_H
 #define ROBOT_LOCALIZATION_FILTER_COMMON_H
 
+
+#include <nlohmann/json.hpp>
+
 namespace RobotLocalization
 {
 
@@ -91,6 +94,8 @@ const int ACCELERATION_SIZE = 3;
 //! @brief Common variables
 const double PI = 3.141592653589793;
 const double TAU = 6.283185307179587;
+
+using json = nlohmann::json;
 
 }  // namespace RobotLocalization
 

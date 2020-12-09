@@ -88,7 +88,9 @@ namespace RobotLocalization
       nh_(nh),
       nhLocal_(nh_priv),
       diagnosticUpdater_(nh, nh_priv, node_name),
-      tfListener_(tfBuffer_)
+      tfListener_(tfBuffer_),
+      iter_prefix("iteration_"),
+      state_prefix("")
   {
     stateVariableNames_.push_back("X");
     stateVariableNames_.push_back("Y");
@@ -145,6 +147,8 @@ namespace RobotLocalization
     // Publisher
     positionPub_ = nh_.advertise<nav_msgs::Odometry>("odometry/filtered", 20);
 
+    
+    
     // Optional acceleration publisher
     if (publishAcceleration_)
     {
@@ -1861,6 +1865,8 @@ namespace RobotLocalization
   template<typename T>
   void RosFilter<T>::periodicUpdate(const ros::TimerEvent& event)
   {
+
+    m_count++;
     // Warn the user if the update took too long (> 2 cycles)
     const double loop_elapsed = (event.current_real - event.last_expected).toSec();
     if (loop_elapsed > 2./frequency_)
@@ -1894,6 +1900,9 @@ namespace RobotLocalization
         filter_.setLastMeasurementTime(ros::Time::now().toSec());
       }
     }
+
+
+    // output_matrices(this->filter_);
 
     // Get latest state and publish it
     nav_msgs::Odometry filteredPosition;
@@ -1981,6 +1990,8 @@ namespace RobotLocalization
 
       // Fire off the position and the transform
       positionPub_.publish(filteredPosition);
+
+      
 
       if (printDiagnostics_)
       {
@@ -3080,6 +3091,37 @@ namespace RobotLocalization
 
     return canTransform;
   }
+
+  template<typename T>
+  void RosFilter<T>::output_matrices(FilterBase &f){
+
+    auto pred_state = f.getPredictedState();
+    auto error_cov = f.getEstimateErrorCovariance();    
+    // auto process_cov = f.getProcessNoiseCovariance();
+    auto state_ = f.getState();
+    
+    std::vector<double> error_cov_v (error_cov.data(), (error_cov.data() + error_cov.size()));
+    std::vector<double> state_v (state_.data(), (state_.data() + state_.size()));
+    std::vector<double> pred_state_v(pred_state.data(), (pred_state.data() + pred_state.size()));
+
+    
+    j_out[iter_prefix + std::to_string(m_count)]["predicted_state"] = pred_state_v;
+    j_out[iter_prefix + std::to_string(m_count)]["current_state"] = state_v;
+    j_out[iter_prefix + std::to_string(m_count)]["error_covariance"] = error_cov_v;
+
+    dump_to_json();
+  }
+
+  template<typename T>
+  void RosFilter<T>::dump_to_json(){
+    json_write.open("/home/sahil_prabhakar/localization_ws/src/robot_localization/data/test_iter.json", std::ios::out);
+    if(json_write.good()){
+      json_write << j_out << std::endl;
+    }
+    std::cout << "Dumped data into .json file" << std::endl;
+    json_write.close();
+  }
+
 
   template<typename T>
   void RosFilter<T>::saveFilterState(FilterBase& filter)
